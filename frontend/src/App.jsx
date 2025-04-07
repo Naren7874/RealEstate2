@@ -5,10 +5,11 @@ import {
   createBrowserRouter,
   RouterProvider,
 } from "react-router-dom";
-import Layout from "./pages/layout/layout";
+import { Layout,RequireAuth } from "./pages/layout/layout";
 import Listpage from "./pages/listPages/listpage";
 import Singlepage from "./pages/singlePage/singlepage";
 import Profile from "./pages/profile/profile";
+import ProfileUpdate from "./pages/profileUpdate/profileUpdate";
 import Login from "./pages/login/login";
 import Register from "./pages/register/register";
 function App() {
@@ -30,10 +31,6 @@ function App() {
           element :<Singlepage/>
          },
          {
-          path : "/profile",
-          element :<Profile />
-         },
-         {
           path: "/login",
           element: <Login />,
         },
@@ -43,6 +40,20 @@ function App() {
         },
       ]
     },
+    {//routes which depend on login(RequireAuth)
+      path:"/",
+      element:<RequireAuth/>,
+      children:[
+        {
+          path : "/profile",
+          element :<Profile />
+         },
+         {
+          path:"/profile/update",
+          element:<ProfileUpdate/>
+         }
+      ]
+    }
   ]);
   return (
    

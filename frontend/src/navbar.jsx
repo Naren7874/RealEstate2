@@ -1,11 +1,16 @@
-import { useState } from 'react';
+import { useState,useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { AuthContext } from './context/AuthContext.jsx';
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
-  const user = true;
+  // const user = true;
   const handleMenuToggle = () => setMenuOpen(!menuOpen);
+  
+  const {currentUser} = useContext(AuthContext);
+  
+
   const handleProfileClick = () => {
     navigate('/profile'); // Redirect to the profile page
   };
@@ -34,17 +39,17 @@ const Navbar = () => {
 
       {/* Right Section */}
       <div className="right flex items-center justify-end gap-6 flex-2">
-        {user ? (
+        {currentUser ? (
           <div
             className="user flex items-center font-bold gap-4 cursor-pointer"
             onClick={handleProfileClick} // Redirect on click
           >
             <img
-              src="https://images.pexels.com/photos/91227/pexels-photo-91227.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+              src={currentUser.avatar || "/noprofile.png"}
               alt="User Avatar"
               className="w-10 h-10 rounded-full object-cover transition-transform hover:scale-105"
             />
-            <span className="hidden sm:inline text-lg">naren</span>
+            <span className="hidden sm:inline text-lg">{currentUser.username}</span>
           </div>
         ) : (
           <>
@@ -109,7 +114,7 @@ const Navbar = () => {
         >
           Agents
         </a>
-        {!user ? (
+        {!currentUser ? (
           <>
             <Link
               to="/login"

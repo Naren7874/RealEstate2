@@ -1,31 +1,60 @@
+import { useNavigate } from "react-router-dom";
+import apiReq from "../../lib/apiReq";
 import Chat from "../chat/chat";
 import List from "../list/list";
 import Listpage from "../listPages/listpage";
 import "./profile.scss";
+import { useContext, useEffect } from "react";
+import { AuthContext } from "../../context/AuthContext";
+import {Link} from "react-router-dom";
 
 const Profile = () => {
+
+  const {updateUser,currentUser} = useContext(AuthContext);
+  // console.log(currentUser.username + " " + currentUser.email + " " + currentUser.avatar);
+  const navigate = useNavigate();
+
+  const handleLogout = async ()=>
+  {
+    try{
+    //no input
+      await apiReq.post("/auth/logout");
+      updateUser(null);
+      navigate("/");
+    }
+    catch(err)
+    {
+      console.log(err.resonse.data.message)
+    }
+
+  }
   return (
+   (
     <div className="profile">
       <div className="details">
         <div className="wrapper">
           <div className="title">
             <h1>User Information</h1>
+            <Link to="/profile/update">
             <button>Update Profile</button>
+            </Link>
+            
           </div>
           <div className="info">
             <span>
               Avatar:
               <img
-                src="https://images.pexels.com/photos/91227/pexels-photo-91227.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+              src={currentUser.avatar || "noprofile.png"} 
                 alt=""
               />
             </span>
             <span>
-              Username: <b>John Doe</b>
+              Username: <b>{currentUser.username}</b>
             </span>
             <span>
-              E-mail: <b>john@gmail.com</b>
+              E-mail: <b>{currentUser.email}</b>
             </span>
+            <button onClick={handleLogout}>Logout</button>
           </div>
           <div className="title">
             <h1>My List</h1>
@@ -44,6 +73,7 @@ const Profile = () => {
         </div>
       </div>
     </div>
+    )
   );
 };
 
