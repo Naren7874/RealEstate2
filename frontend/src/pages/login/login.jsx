@@ -4,51 +4,44 @@ import { useContext, useState } from "react";
 import apiReq from "../../lib/apiReq";
 import { useNavigate } from "react-router";
 import { AuthContext } from "../../context/AuthContext";
- 
+import toast from "react-hot-toast";
+
 function Login() {
- 
-  const [error,setError] = useState("");
-  const [isLoading,setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const {updateUser} = useContext(AuthContext)  
-
+  const { updateUser } = useContext(AuthContext);
   const navigate = useNavigate();
-  const handleSubmit = async(e) =>
-  {
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
-    const formData = new FormData(e.target)
+
+    const formData = new FormData(e.target);
     const username = formData.get("username");
     const password = formData.get("password");
 
-    try{
-      //post - input - username and password
-      const res = await apiReq.post("/auth/login",{
+    const loginToast = toast.loading("Logging in...");
+
+    try {
+      const res = await apiReq.post("/auth/login", {
         username,
-        password
-      }
-      );
-      // console.log(res)(prints data)
-      //to store data and display on browser(local storage)
-      // localStorage.setItem("user",JSON.stringify(res.data));
+        password,
+      });
 
-      updateUser(res.data)
-      navigate("/")
-
-    }
-    catch(error)
-    {
-      setError(error.response.data.message);
-      console.log(error)
-    }
-    finally{
-      //to stop loading at last
+      updateUser(res.data);
+      toast.success("Logged in successfully!", { id: loginToast });
+      navigate("/");
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || "Login failed";
+      toast.error(errorMsg, { id: loginToast });
+      setError(errorMsg);
+    } finally {
       setIsLoading(false);
     }
+  };
 
-    }
-    
   return (
     <div className="login">
       <div className="formContainer">
@@ -59,7 +52,7 @@ function Login() {
             required
             minLength={3}
             maxLength={20}
-            type="text" 
+            type="text"
             placeholder="Username"
           />
           <input
@@ -69,18 +62,18 @@ function Login() {
             placeholder="Password"
           />
           <button disabled={isLoading}>
-            {!isLoading ? "Login" : "loading..."}
+            {!isLoading ? "Login" : "Loading..."}
           </button>
-          {error && <span>{error}</span>}
-          
-          <Link to="/register"> Do not have an account?</Link>
+          {error && <span className="error">{error}</span>}
+
+          <Link to="/register">Do not have an account?</Link>
         </form>
       </div>
       <div className="imgContainer">
         <img src="/bg.png" alt="Background" />
       </div>
     </div>
-  );  
+  );
 }
 
 export default Login;

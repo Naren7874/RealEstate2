@@ -3,6 +3,7 @@ import "./profileUpdate.scss";
 import { AuthContext } from "../../context/AuthContext";
 import apiReq from "../../lib/apiReq"; 
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 function ProfileUpdate() {
   const { currentUser, updateUser } = useContext(AuthContext);
@@ -10,13 +11,15 @@ function ProfileUpdate() {
   const [avatar, setAvatar] = useState([]);
   const fileRef = useRef(null);
   const navigate = useNavigate();
-  const [loading ,setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     setLoading(true);
     e.preventDefault();
     const formData = new FormData(e.target);
     const { username, email, password } = Object.fromEntries(formData);
+
+    const updateToast = toast.loading("Updating profile...");
 
     try {
       const res = await apiReq.put(`/users/${currentUser.id}`, {
@@ -26,29 +29,31 @@ function ProfileUpdate() {
         avatar: avatar[0],
       });
       updateUser(res.data);
+      toast.success("Profile updated successfully!", { id: updateToast });
       navigate("/profile");
     } catch (err) {
       console.error(err);
-      setError(err.response?.data?.message || "Something went wrong");
-    }finally{
+      const errorMsg = err.response?.data?.message || "Something went wrong";
+      toast.error(errorMsg, { id: updateToast });
+      setError(errorMsg);
+    } finally {
       setLoading(false);
     }
-
   };
 
-  const handleImageChange =(e)=>{
-    const file = e.target.files[0]
-    if(file && file.type.startsWith("image/")){
-        const reader = new FileReader()
-        reader.onloadend = () => {
-            setAvatar([reader.result])
-        }
-        reader.readAsDataURL(file)
-    }else{
-        setAvatar([])
-        alert("Please select a valid image file")
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file && file.type.startsWith("image/")) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatar([reader.result]);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setAvatar([]);
+      toast.error("Please select a valid image file");
     }
-}
+  };
 
   return (
     <div className="profileUpdatePage">
@@ -78,11 +83,7 @@ function ProfileUpdate() {
             <input id="password" name="password" type="password" />
           </div>
           <button type="submit">
-            {loading ? (
-              "Loading..."
-            ) : (
-              "Update"
-            )}
+            {loading ? "Loading..." : "Update"}
           </button>
           {error && <span className="error">{error}</span>}
         </form>
