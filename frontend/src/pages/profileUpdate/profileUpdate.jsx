@@ -1,39 +1,54 @@
 import { useContext, useRef, useState } from "react";
 import "./profileUpdate.scss";
 import { AuthContext } from "../../context/AuthContext";
-import apiReq from "../../lib/apiReq";
+import apiReq from "../../lib/apiReq"; 
 import { useNavigate } from "react-router-dom";
 
-
-function profileUpdate() {
+function ProfileUpdate() {
   const { currentUser, updateUser } = useContext(AuthContext);
   const [error, setError] = useState("");
   const [avatar, setAvatar] = useState([]);
-
-  const fileRef = useRef(null)
-
+  const fileRef = useRef(null);
   const navigate = useNavigate();
+  const [loading ,setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
+    setLoading(true);
     e.preventDefault();
     const formData = new FormData(e.target);
-
     const { username, email, password } = Object.fromEntries(formData);
 
     try {
-      const res = await apiRequest.put(`/users/${currentUser.id}`, {
+      const res = await apiReq.put(`/users/${currentUser.id}`, {
         username,
         email,
         password,
-        avatar:avatar[0]
+        avatar: avatar[0],
       });
       updateUser(res.data);
       navigate("/profile");
     } catch (err) {
-      console.log(err);
-      setError(err.response.data.message);
+      console.error(err);
+      setError(err.response?.data?.message || "Something went wrong");
+    }finally{
+      setLoading(false);
     }
+
   };
+
+  const handleImageChange =(e)=>{
+    const file = e.target.files[0]
+    if(file && file.type.startsWith("image/")){
+        const reader = new FileReader()
+        reader.onloadend = () => {
+            setAvatar([reader.result])
+        }
+        reader.readAsDataURL(file)
+    }else{
+        setAvatar([])
+        alert("Please select a valid image file")
+    }
+}
 
   return (
     <div className="profileUpdatePage">
@@ -62,19 +77,40 @@ function profileUpdate() {
             <label htmlFor="password">Password</label>
             <input id="password" name="password" type="password" />
           </div>
-          <button>Update</button>
-          {error && <span>error</span>}
+          <button type="submit">
+            {loading ? (
+              "Loading..."
+            ) : (
+              "Update"
+            )}
+          </button>
+          {error && <span className="error">{error}</span>}
         </form>
       </div>
       <div className="sideContainer">
-        <img src={avatar[0] || currentUser.avatar || "/noProfile.png"} alt="" className="avatar" />
+        <img
+          src={avatar[0] || currentUser.avatar || "/noProfile.png"}
+          alt="avatar"
+          className="avatar"
+        />
         <div>
-          <div className="bg-blue-800 text-white font-semibold px-10 py-5 cursor-pointer border-none rounded-md" onClick={()=>fileRef.current.click()} >Upload</div>
-          <input type="file" hidden="true" ref={fileRef}/>
+          <div
+            className="bg-blue-800 text-white font-semibold px-10 py-5 cursor-pointer border-none rounded-md"
+            onClick={() => fileRef.current.click()}
+          >
+            Upload
+          </div>
+          <input
+            type="file"
+            accept="image/*"
+            hidden
+            ref={fileRef}
+            onChange={handleImageChange}
+          />
         </div>
       </div>
     </div>
   );
 }
 
-export default profileUpdate;
+export default ProfileUpdate;

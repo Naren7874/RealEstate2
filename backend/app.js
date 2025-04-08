@@ -16,15 +16,21 @@ app.use(cors({
     origin: process.env.CLIENT_URL?.replace(/\/$/, '') || "http://localhost:5173", // Ensure a default URL
     credentials:true,
 }));
-const data = cloudinary.config({
+
+cloudinary.config({
     cloud_name: process.env.CLOUDINARY_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret:process.env.CLOUDINARY_API_SECRET
 })
 
-// console.log(data)
+// console.log(data);
+
 app.use(cookieParser());
-app.use(express.json()); 
+app.use(express.json(
+    {
+        limit: '50mb',
+    }
+)); 
 
 app.use('/api/auth', authRoute);
 app.use('/api/posts', postRoute);
