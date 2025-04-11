@@ -38,8 +38,8 @@ function Register() {
     } finally {
       setIsLoading(false);
     }
-  };
-
+  }; 
+ 
   return (
     <div className="registerPage">
       <div className="formContainer">
