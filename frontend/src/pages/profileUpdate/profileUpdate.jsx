@@ -12,6 +12,7 @@ function ProfileUpdate() {
   const fileRef = useRef(null);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  
 
   const handleSubmit = async (e) => {
     setLoading(true);

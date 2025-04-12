@@ -12,6 +12,7 @@ import Profile from "./pages/profile/profile";
 import ProfileUpdate from "./pages/profileUpdate/profileUpdate";
 import Login from "./pages/login/login";
 import Register from "./pages/register/register";
+import NewPostPage from "./pages/newPostPage/newPostPage"
 function App() {
   const router = createBrowserRouter([
     {
@@ -51,6 +52,10 @@ function App() {
          {
           path:"/profile/update",
           element:<ProfileUpdate/>
+         },
+         {
+          path:"/add",
+          element:<NewPostPage/>
          }
       ]
     }

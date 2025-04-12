@@ -1,0 +1,120 @@
+.newPostPage {
+    height: 100%;
+    display: flex;
+  
+    .formContainer {
+      flex: 3;
+      overflow: scroll;
+  
+      .wrapper {
+        margin: 30px 50px 100px 0px;
+  
+        form {
+          display: flex;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 20px;
+  
+          .item {
+            width: 30%;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+  
+            label {
+            }
+  
+            input {
+              padding: 20px;
+              border-radius: 5px;
+              border: 1px solid gray;
+            }
+  
+            select {
+              padding: 19px;
+            }
+  
+            &.description {
+              width: 100%;
+              height: 320px;
+  
+              .quill > .ql-container > .ql-editor{
+                height: 200px;
+                font-size: 16px;
+              }
+            }
+          }
+          .sendButton {
+            width: 30%;
+            border-radius: 5px;
+            border: none;
+            background-color: teal;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+          }
+        }
+      }
+    }
+  
+    .sideContainer {
+      flex: 2;
+      background-color: #fcf5f3;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    
+      .previewContainer {
+        margin-top: 20px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        justify-content: center;
+      }
+    
+      .imageWrapper {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid #ccc;
+    
+        &:hover .removeImageBtn {
+          opacity: 1;
+        }
+      }
+    
+      .previewImage {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+    
+      .removeImageBtn {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background-color: rgba(0, 0, 0, 0.6);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        font-size: 16px;
+        cursor: pointer;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    
+        &:hover {
+          background-color: rgba(255, 0, 0, 0.8);
+        }
+      }
+    }
+  }
