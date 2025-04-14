@@ -35,7 +35,6 @@ const handleSubmit = async (e) =>{
                 latitude:inputs.latitude,
                 longitude:inputs.longitude,
                 img:images
-               
             },
             postDetail:{
                 desc:value,
@@ -47,10 +46,9 @@ const handleSubmit = async (e) =>{
                 bus:parseInt(inputs.bus),
                 restaurant:parseInt(inputs.restaurant)
             }
-
         })
         toast.success("Post created successfully!", { id: createPostToast });
-        navigate("/",res.data.id)
+        navigate("/"+res.data.id)
         }
         catch(err)
         {
@@ -63,10 +61,21 @@ const handleSubmit = async (e) =>{
 
 const handleImageChange = (e) => {
   const files = Array.from(e.target.files);
-  const imagePromises = files.map((file) => {
+  const maxImages = 4;
+
+  const availableSlots = maxImages - images.length;
+  if (availableSlots <= 0) {
+    toast.error("You can only upload up to 4 images.");
+    return;
+  }
+
+  const limitedFiles = files.slice(0, availableSlots);
+
+  const imagePromises = limitedFiles.map((file) => {
     return new Promise((resolve, reject) => {
       if (!file.type.startsWith("image/")) {
         reject("Invalid file type");
+        return;
       }
 
       const reader = new FileReader();
@@ -77,8 +86,12 @@ const handleImageChange = (e) => {
   });
 
   Promise.all(imagePromises)
-  .then((newImages) => setImages((prev) => [...prev, ...newImages]))
-  .catch(() => toast.error("One or more files are not valid images"));
+    .then((newImages) => {
+      setImages((prev) => [...prev, ...newImages]);
+    })
+    .catch(() => {
+      toast.error("One or more files are not valid images");
+    });
 };
 
 return (
@@ -223,12 +236,8 @@ return (
           >
             Upload
           </div>
-          {/* to accept imag type of file , input should not be visible => hidden */}
-          {/* to allow multiple images => multiple */}
           <input type="file" accept="image/*" hidden multiple ref={fileRef} onChange={handleImageChange}/>
         </div>
-         
-       
       </div>
     </div>
   );
