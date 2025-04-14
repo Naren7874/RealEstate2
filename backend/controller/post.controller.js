@@ -1,12 +1,27 @@
 import prisma from "../lib/prisma.js";
 import { v2 as cloudinary } from "cloudinary";
+import jwt from "jsonwebtoken"
 
 export const getPosts = async( req,res) =>
 {
+  const query = req.query;
+  console.log(query.property)
     try{
-        const posts = await prisma.post.findMany()
-        console.log(posts)
-        res.status(200).json(posts);
+        const posts = await prisma.post.findMany({
+          where:{
+            city:query.city || undefined,
+            type:query.type !== "any" ? query.type : undefined,
+            property: query.property !== "any" ? query.property : undefined,
+            bedroom: parseInt(query.bedroom) || undefined,
+            price:{
+              gte:parseInt(query.minPrice) || 0,
+              lte:parseInt(query.maxPrice) || 10000000
+            }
+          }
+        })
+        // setTimeout(()=>{
+          res.status(200).json(posts);
+        // },2000)
     } 
     catch(err)
     {
@@ -15,32 +30,53 @@ export const getPosts = async( req,res) =>
     }
 }
 
-export const getPost = async( req,res) =>
-{
-    const id = req.params.id;
-    try{
-        const post = await prisma.post.findUnique({
-                where:{id},
-                //to allow when clicking on post => postdetails and user details 
-                include:{
-                    postDetail: true,
-                    user:{
-                        select:{
-                            username:true,
-                            avatar:true
-                        }
-                    },
-                }
-        })
-        res.status(200).json(post)
+export const getPost = async (req, res) => {
+  const id = req.params.id;
 
+  try {
+    const post = await prisma.post.findUnique({
+      where: { id },
+      include: {
+        postDetail: true,
+        user: {
+          select: {
+            username: true,
+            avatar: true,
+          },
+        },
+      },
+    });
+
+    const token = req.cookies?.token;
+
+    if (token) {
+      jwt.verify(token, process.env.JWT_SECRET_KEY, async (err, payload) => {
+        if (err) {
+          return res.status(401).json({ message: "Invalid token" }); // ✅ handle token error with return
+        }
+
+        const saved = await prisma.savedPost.findUnique({
+          where: {
+            userId_postId: {
+              postId: id,
+              userId: payload.id,
+            },
+          },
+        });
+
+        return res.status(200).json({ ...post, isSaved: !!saved });
+      });
+
+      return; // ✅ prevent sending another response below
     }
-    catch(err)
-    {
-        console.log(err)
-        res.status(500).json({message:"Failed to get post"})
-    }
-}
+
+    return res.status(200).json({ ...post, isSaved: false });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ message: "Failed to get post" });
+  }
+};
+
 
 export const addPost = async (req, res) => {
   const body = req.body;

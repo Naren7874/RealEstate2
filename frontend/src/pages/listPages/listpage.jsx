@@ -3,23 +3,43 @@ import {listData} from "../../lib/dummydata"
 import './listpage.scss';
 import Card from '../card/card';
 import Map from '../map/map';
+import { Await, useLoaderData } from 'react-router-dom';
+import { Suspense } from 'react';
 
 
-const Listpage = () => {
-  const data = listData;
+function Listpage() {
+  const data = useLoaderData()
+
   return (
     <div className='listpage'>
 
       <div className="listcontainer">
         <div className="wrapper">
         <Filter />
-        {data.map(item => (
-          <Card key={item.id} item={item} />
-        ))}
+        <Suspense fallback={<p>Loading...</p>}>
+          <Await
+            resolve={data.postResponse}
+            errorElement={<p>Error loading posts!</p>}
+          >
+            {(postResponse)=> postResponse.data.map(post=>(
+              <Card key={post.id} item={post}/>  
+            ))}
+          </Await>
+
+        </Suspense>
         </div>
       </div>
       <div className="mapcontainer">
-      <Map items={data} />
+      <Suspense fallback={<p>Loading...</p>}>
+          <Await
+            resolve={data.postResponse}
+            errorElement={<p>Error loading posts!</p>}
+          >
+            {(postResponse)=> <Map items={postResponse.data} /> }
+          </Await>
+
+        </Suspense>
+     
       </div>
     </div>
   )
