@@ -2,7 +2,7 @@ import { json } from "express";
 import prisma from "../lib/prisma.js";
 import argon2 from "argon2";
 import { v2 as cloudinary } from "cloudinary";
-import jwt from "jsonwebtoken"; 
+import jwt from "jsonwebtoken";
 
 export const getUsers = async (req, res) => {
   try {
@@ -47,7 +47,7 @@ export const updateUser = async (req, res) => {
 
     if (avatar) {
       const uploadResponse = await cloudinary.uploader.upload(avatar, {
-        folder:"/RealEstate"
+        folder: "/RealEstate",
       });
       updatedAvatar = uploadResponse.secure_url;
     }
@@ -129,20 +129,21 @@ export const savePost = async (req, res) => {
 };
 
 export const profilePosts = async (req, res) => {
-  const tokenUserId = req.params.userId
+  const tokenUserId = req.userId;
+  console.log("token user is is" + tokenUserId);
   try {
     const userPosts = await prisma.post.findMany({
-      where: { userId:tokenUserId }, 
+      where: { userId: tokenUserId },
     });
     const saved = await prisma.savedPost.findMany({
-      where: { userId:tokenUserId }, 
-      include:{
-        post:true,
-      }
+      where: { userId: tokenUserId },
+      include: {
+        post: true,
+      },
     });
-    const savedPosts = saved.map((item)=>item.post)
+    const savedPosts = saved.map((item) => item.post);
 
-    res.status(200).json({userPosts,savedPosts});
+    res.status(200).json({ userPosts, savedPosts });
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Failed to get profile posts!" });
