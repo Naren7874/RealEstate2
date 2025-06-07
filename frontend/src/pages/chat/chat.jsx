@@ -1,136 +1,179 @@
-import { useState } from "react";
+import { useState, useEffect, useContext } from "react";
 import "./chat.scss";
+import { AuthContext } from "../../context/AuthContext";
+import apiReq from "../../lib/apiReq";
+import { format } from "timeago.js";
 
-function Chat() {
-  const [chat, setchat] = useState(true);
+function Chat({ openChatId }) {
+  const [chat, setChat] = useState(null);
+  const [chats, setChats] = useState([]);
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState("");
+  const { currentUser } = useContext(AuthContext);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchChats = async () => {
+      try {
+        setError(null);
+        setLoading(true);
+        const res = await apiReq.get("/chats");
+        setChats(res.data);
+        
+        if (openChatId) {
+          const foundChat = res.data.find(c => c.id === openChatId);
+          if (foundChat) {
+            setChat(foundChat);
+          }
+        }
+      } catch (err) {
+        setError("Failed to load chats. Please try again.");
+        console.log(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchChats();
+  }, [openChatId]);
+
+  useEffect(() => {
+    const fetchMessages = async () => {
+      try {
+        if (chat) {
+          const res = await apiReq.get(`/chats/${chat.id}`);
+          setMessages(res.data.messages);
+          // Mark as read when opened
+          if (!chat.seenBy.includes(currentUser.id)) {
+            await apiReq.put(`/chats/read/${chat.id}`);
+          }
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    fetchMessages();
+
+    // Polling for new messages (replace with WebSocket in production)
+    const interval = setInterval(fetchMessages, 5000);
+    return () => clearInterval(interval);
+  }, [chat, currentUser.id]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!newMessage.trim() || !chat) return;
+
+    try {
+      const res = await apiReq.post(`/messages/${chat.id}`, {
+        text: newMessage,
+      });
+      setMessages([...messages, res.data]);
+      setNewMessage("");
+
+      // Update the chats list to show the new message
+      setChats((prev) =>
+        prev.map((c) =>
+          c.id === chat.id
+            ? {
+                ...c,
+                lastMessage: newMessage,
+                updatedAt: new Date().toISOString(),
+              }
+            : c
+        )
+      );
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   return (
     <div className="chat">
+      {error && <div className="error-message">{error}</div>}
       <div className="messages">
-        <h1>Message</h1>
-        <div className="message" onClick={() => setchat(true)}>
-          <img
-            src="https://images.pexels.com/photos/91227/pexels-photo-91227.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
-            alt=""
-          />
-          <span>naren</span>
-          <p>Lorem ipsum dolor sit amet......</p>
-        </div>
-        <div className="message">
-          <img
-            src="https://images.pexels.com/photos/91227/pexels-photo-91227.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
-            alt=""
-          />
-          <span>naren</span>
-          <p>Lorem ipsum dolor sit amet......</p>
-        </div>
-        <div className="message">
-          <img
-            src="https://images.pexels.com/photos/91227/pexels-photo-91227.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
-            alt=""
-          />
-          <span>naren</span>
-          <p>Lorem ipsum dolor sit amet......</p>
-        </div>
-        <div className="message">
-          <img
-            src="https://images.pexels.com/photos/91227/pexels-photo-91227.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
-            alt=""
-          />
-          <span>naren</span>
-          <p>Lorem ipsum dolor sit amet......</p>
-        </div>
-        <div className="message">
-          <img
-            src="https://images.pexels.com/photos/91227/pexels-photo-91227.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
-            alt=""
-          />
-          <span>naren</span>
-          <p>Lorem ipsum dolor sit amet......</p>
-        </div>
-        <div className="message">
-          <img
-            src="https://images.pexels.com/photos/91227/pexels-photo-91227.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
-            alt=""
-          />
-          <span>naren</span>
-          <p>Lorem ipsum dolor sit amet......</p>
-        </div>
-        <div className="message">
-          <img
-            src="https://images.pexels.com/photos/91227/pexels-photo-91227.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
-            alt=""
-          />
-          <span>naren</span>
-          <p>Lorem ipsum dolor sit amet......</p>
-        </div>
-        <div className="message">
-          <img
-            src="https://images.pexels.com/photos/91227/pexels-photo-91227.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
-            alt=""
-          />
-          <span>naren</span>
-          <p>Lorem ipsum dolor sit amet......</p>
-        </div>
-        <div className="message">
-          <img
-            src="https://images.pexels.com/photos/91227/pexels-photo-91227.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
-            alt=""
-          />
-          <span>naren</span>
-          <p>Lorem ipsum dolor sit amet......</p>
-        </div>
+        <h1>Messages</h1>
+        {loading ? (
+          <p>Loading chats...</p>
+        ) : chats.length === 0 ? (
+          <p>No chats yet. Start a conversation!</p>
+        ) : (
+          chats.map((c) => {
+            const receiver = c.userIDs.find(id => id !== currentUser.id);
+            const receiverDetails = c.receiver || {};
+            const unreadCount = c.userIDs.includes(currentUser.id) && 
+                             !c.seenBy.includes(currentUser.id) ? 1 : 0;
+            
+            return (
+              <div
+                className="message"
+                key={c.id}
+                onClick={() => setChat(c)}
+                style={{
+                  backgroundColor: chat?.id === c.id ? "rgba(229, 194, 104, 0.2)" : "white",
+                  position: "relative",
+                }}
+              >
+                {unreadCount > 0 && (
+                  <span className="unread-badge">{unreadCount}</span>
+                )}
+                <img
+                  src={receiverDetails?.avatar || "/noavatar.jpg"}
+                  alt={receiverDetails?.username}
+                />
+                <div className="message-info">
+                  <span>{receiverDetails?.username || "Unknown User"}</span>
+                  <p>
+                    {c.lastMessage?.length > 30
+                      ? c.lastMessage.substring(0, 30) + "..."
+                      : c.lastMessage || "No messages yet"}
+                  </p>
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
-      {chat && (
+      {chat ? (
         <div className="chatbox">
           <div className="top">
             <div className="name">
               <img
-                src="https://images.pexels.com/photos/91227/pexels-photo-91227.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
-                alt=""
+                src={chat.receiver?.avatar || "/noavatar.jpg"}
+                alt={chat.receiver?.username}
               />
-              naren
+              {chat.receiver?.username || "Unknown User"}
             </div>
-            <span onClick={() => setchat(null)}>X</span>
+            <span onClick={() => setChat(null)}>X</span>
           </div>
           <div className="center">
-            <div className="textmessage">
-              <p>Lorem ipsum dolor sit amet.</p>
-              <span>1 hour ago</span>
-            </div>
-            <div className="textmessage our">
-              <p>Lorem ipsum dolor sit amet.</p>
-              <span>1 hour ago</span>
-            </div>
-            <div className="textmessage">
-              <p>Lorem ipsum dolor sit amet.</p>
-              <span>1 hour ago</span>
-            </div>
-            <div className="textmessage our">
-              <p>Lorem ipsum dolor sit amet.</p>
-              <span>1 hour ago</span>
-            </div>
-            <div className="textmessage">
-              <p>Lorem ipsum dolor sit amet.</p>
-              <span>1 hour ago</span>
-            </div>
-            <div className="textmessage our">
-              <p>Lorem ipsum dolor sit amet.</p>
-              <span>1 hour ago</span>
-            </div>
-            <div className="textmessage">
-              <p>Lorem ipsum dolor sit amet.</p>
-              <span>1 hour ago</span>
-            </div>
-            <div className="textmessage our">
-              <p>Lorem ipsum dolor sit amet.</p>
-              <span>1 hour ago</span>
-            </div>
+            {messages.length === 0 ? (
+              <p className="no-messages">No messages yet. Start the conversation!</p>
+            ) : (
+              messages.map((m) => (
+                <div
+                  className={`textmessage ${
+                    m.userId === currentUser.id ? "our" : ""
+                  }`}
+                  key={m.id}
+                >
+                  <p>{m.text}</p>
+                  <span>{format(m.createdAt)}</span>
+                </div>
+              ))
+            )}
           </div>
-          <div className="bottom">
-            <textarea name="" id="" placeholder="Enter message"></textarea>
-
-            <button>Send</button>
-          </div>
+          <form className="bottom" onSubmit={handleSubmit}>
+            <textarea
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              placeholder="Type your message here..."
+            />
+            <button type="submit">Send</button>
+          </form>
+        </div>
+      ) : (
+        <div className="no-chat-selected">
+          <p>Select a chat to start messaging</p>
         </div>
       )}
     </div>

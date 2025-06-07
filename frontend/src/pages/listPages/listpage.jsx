@@ -9,7 +9,7 @@ import { Suspense } from 'react';
 
 function Listpage() {
   const data = useLoaderData()
-
+  
   return (
     <div className='listpage'>
 
@@ -29,7 +29,7 @@ function Listpage() {
         </Suspense>
         </div>
       </div>
-      <div className="mapcontainer">
+      <div className="mapcontainer rounded-xl overflow-hidden ">
       <Suspense fallback={<p>Loading...</p>}>
           <Await
             resolve={data.postResponse}

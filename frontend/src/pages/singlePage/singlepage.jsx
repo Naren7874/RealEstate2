@@ -5,33 +5,49 @@ import Map from "../map/map";
 import { useLoaderData, useNavigate } from "react-router-dom";
 import DOMPurify from "dompurify";
 import { useContext, useState } from "react";
-import {AuthContext} from "../../context/AuthContext"
+import { AuthContext } from "../../context/AuthContext";
 import apiReq from "../../lib/apiReq";
+import toast from "react-hot-toast";
+
 
 function Singlepage() {
   const post = useLoaderData();
-  const [saved,setSaved] = useState(post.isSaved);
-  const {currentUser} = useContext(AuthContext);
+  const [saved, setSaved] = useState(post.isSaved);
+  const { currentUser } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const handleSave  = async ()=>{
-    
-    setSaved((prev) =>!prev);
-    if(!currentUser)
-    {
-      navigate("/login")
+  const handleSave = async () => {
+    setSaved((prev) => !prev);
+    if (!currentUser) {
+      navigate("/login");
       return;
     }
-    
-    try{
-      await apiReq.post("/users/save",{postId: post.id});
+
+    try {
+      await apiReq.post("/users/save", { postId: post.id });
+      toast.success(saved ? "Post removed from saved" : "Post saved successfully");
+    } catch (err) {
+      console.log(err);
+      toast.error("Failed to save post");
+      setSaved((prev) => !prev);
     }
-    catch(err)
-    {
-      console.log(err)
-      setSaved((prev) =>!prev);
+  };
+  const handleMessage = async () => {
+    if (!currentUser) {
+      navigate("/login");
+      return;
     }
-  }
+    console.log("Pst creator id  ", post.userId);
+    try {
+      const res = await apiReq.post("/chats", {
+        receiverId: post.userId,
+      });
+      navigate("/profile", { state: { openChat: res.data.id } });
+    } catch (err) {
+      console.log(err);
+      toast.error(err.response?.data?.message || "Failed to start chat");
+    }
+  };
   return (
     <div className="singlepage">
       <div className="details">
@@ -149,18 +165,21 @@ function Singlepage() {
           </div>
 
           <div className="buttons">
-            <button>
+            <button onClick={handleMessage}>
               <img src="/chat.png" alt="" />
               Send a Message
             </button>
-            <button onClick={handleSave} style={{backgroundColor: saved? "#fece51" : "white" }}>
+            <button
+              onClick={handleSave}
+              style={{ backgroundColor: saved ? "#fece51" : "white" }}
+            >
               <img src="/save.png" alt="" />
-              { saved ? "Place Saved" : "Save the Place"}
+              {saved ? "Place Saved" : "Save the Place"}
             </button>
           </div>
         </div>
       </div>
-    </div> 
+    </div>
   );
 }
 

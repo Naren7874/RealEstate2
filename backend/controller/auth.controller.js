@@ -5,7 +5,6 @@ import jwt from "jsonwebtoken";
 export const register = async (req,res)=>{
     const {username,email,password} = req.body;
 
-    //hash password
     const hashedPassword = await argon2.hash(password);
 
     try{

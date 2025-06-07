@@ -1,13 +1,13 @@
-
 @import "../../responsive.scss";
 
 .card {
   display: flex;
   gap: 20px;
 
-  @include sm{
+  @include sm {
     flex-direction: column;
   }
+
   .imagecontainer {
     flex: 2;
     height: 200px;
@@ -19,12 +19,12 @@
       border-radius: 10px;
     }
   }
+
   .textcontainer {
     flex: 3;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    // gap: 5px;
 
     img {
       width: 16px;
@@ -36,13 +36,14 @@
       font-weight: 600;
       color: #444;
       transition: all 0.4s ease;
-      .title2{
-          
-          text-decoration: none;
+      
+      .title2 {
+        text-decoration: none;
+        
+        &:hover {
+          color: #000;
+          scale: 1.01;
         }
-      &:hover {
-        color: #000;
-        scale: 1.01;
       }
     }
 

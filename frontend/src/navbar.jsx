@@ -131,14 +131,7 @@ const Navbar = () => {
               Sign up
             </Link>
           </>
-        ) : 
-        <a
-          href="/"
-          className="text-2xl hover:underline transition-transform hover:scale-105"
-          onClick={handleMenuToggle}
-        >
-          Profile
-        </a>
+        ) : ""
         }
       </div>
     </nav>

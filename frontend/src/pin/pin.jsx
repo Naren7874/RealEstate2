@@ -2,13 +2,15 @@ import { Marker, Popup } from 'react-leaflet';
 import { Link } from 'react-router-dom';
 
 const Pin = ({ item }) => {
+ 
+
   return (
     <Marker position={[item.latitude, item.longitude]}>
       <Popup>
         <div className="flex w-auto gap-4 items-start min-w-[150px]">
           {/* Image */}
           <img
-            src={item.img}
+            src={item.img[0]}
             alt="Property"
             className="w-16 h-12 object-cover rounded-lg"
           />

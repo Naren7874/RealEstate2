@@ -49,7 +49,6 @@ const Filter = () => {
                     <option value="apartment">Apartment</option>
                     <option value="condo">Condo</option>
                     <option value="land">Land</option>
-
                 </select>
             </div>
             <div className="item">
@@ -62,7 +61,7 @@ const Filter = () => {
             </div>
             <div className="item">
                 <label htmlFor="bedroom">Bedroom</label>
-                <input type="number" name="bedroom" id="bedroom" placeholder='any' onChange={handleChange} defaultValue={query.bedroom}/>
+                <input type="number" name="bedroom" id="bedroom" placeholder='any' onChange={handleChange} defaultValue="1" min="0"/>
             </div>
             <button onClick={handleFilter}>
                 <img src="/search.png" alt="" />
