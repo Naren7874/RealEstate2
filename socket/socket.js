@@ -29,7 +29,7 @@ const addUser = (userId, socketId) => {
   const userExists = onlineUsers.some(user => user.userId === userId);
   if (!userExists) {
     onlineUsers.push({ userId, socketId });
-    console.log(`User added: ${userId} with socket ${socketId}`);
+    // console.log(`User added: ${userId} with socket ${socketId}`);
   }
 };
 
