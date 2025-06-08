@@ -1,8 +1,9 @@
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useRef } from "react";
 import "./chat.scss";
 import { AuthContext } from "../../context/AuthContext";
 import apiReq from "../../lib/apiReq";
 import { format } from "timeago.js";
+import { SocketContext } from "../../context/SocketContext";
 
 function Chat({ openChatId }) {
   const [chat, setChat] = useState(null);
@@ -12,6 +13,12 @@ function Chat({ openChatId }) {
   const { currentUser } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const { socket } = useContext(SocketContext);
+  const messageEndRef = useRef();
+
+  useEffect(() => {
+    messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   useEffect(() => {
     const fetchChats = async () => {
@@ -90,6 +97,8 @@ function Chat({ openChatId }) {
   return (
     <div className="chat">
       {error && <div className="error-message">{error}</div>}
+      
+      {/* Chat list - always visible */}
       <div className="messages">
         <h1>Messages</h1>
         {loading ? (
@@ -110,7 +119,6 @@ function Chat({ openChatId }) {
                 onClick={() => setChat(c)}
                 style={{
                   backgroundColor: chat?.id === c.id ? "rgba(229, 194, 104, 0.2)" : "white",
-                  position: "relative",
                 }}
               >
                 {unreadCount > 0 && (
@@ -133,17 +141,33 @@ function Chat({ openChatId }) {
           })
         )}
       </div>
+      
+      {/* Chat box - appears on top when a chat is selected */}
       {chat ? (
-        <div className="chatbox">
+        <div className={`chatbox active`}>
           <div className="top">
             <div className="name">
+              <button 
+                className="back-button" 
+                onClick={() => setChat(null)}
+                style={{ 
+                  marginRight: '10px', 
+                  background: 'none', 
+                  border: 'none', 
+                  fontSize: '20px',
+                  color: 'white',
+                  cursor: 'pointer'
+                }}
+              >
+                ←
+              </button>
               <img
                 src={chat.receiver?.avatar || "/noavatar.jpg"}
                 alt={chat.receiver?.username}
               />
               {chat.receiver?.username || "Unknown User"}
             </div>
-            <span onClick={() => setChat(null)}>X</span>
+            <span onClick={() => setChat(null)}>✕</span>
           </div>
           <div className="center">
             {messages.length === 0 ? (
@@ -161,6 +185,7 @@ function Chat({ openChatId }) {
                 </div>
               ))
             )}
+            <div ref={messageEndRef} />
           </div>
           <form className="bottom" onSubmit={handleSubmit}>
             <textarea
@@ -179,5 +204,4 @@ function Chat({ openChatId }) {
     </div>
   );
 }
-
 export default Chat;

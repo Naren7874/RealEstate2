@@ -9,10 +9,10 @@ import userRoute from './routes/user.route.js'
 import chatRoute from "./routes/chat.route.js";
 import messageRoute from "./routes/message.route.js";
 import { v2 as cloudinary } from 'cloudinary'
+import { app, server } from './socket/socket.js';
 
 dotenv.config(); // Load environment variables
 
-const app = express();
 
 app.use(cors({
     origin: process.env.CLIENT_URL?.replace(/\/$/, '') || "http://localhost:5173", // Ensure a default URL
@@ -42,6 +42,6 @@ app.use("/api/chats", chatRoute);
 app.use("/api/messages", messageRoute);
 
 
-app.listen(8080, () => {
+server.listen(8080, () => {
     console.log('App started on port 8080');
 });

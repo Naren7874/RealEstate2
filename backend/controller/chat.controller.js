@@ -96,7 +96,7 @@ export const addChat = async (req, res) => {
   try {
     // Check if user is trying to chat with themselves
     if (tokenUserId === receiverId) {
-      return res.status(400).json({ message: "Cannot create chat with yourself!" });
+      return res.status(400).json({ message: "can't chat with your self" });
     }
 
     // Validate receiver exists
